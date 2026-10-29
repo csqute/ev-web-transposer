@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Ev Web 移调器 · DEMO</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111c2e;
+    --panel-2: #17253a;
+    --line: #24344d;
+    --text: #e8eefc;
+    --muted: #8fa3c0;
+    --accent: #2dd4bf;
+    --accent-2: #14b8a6;
+    --amber: #f59e0b;
+    --red: #f87171;
+    --green: #4ade80;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(1200px 600px at 50% -10%, #14233c 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+  .app {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: max(14px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+  }
+  .brand p {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 52%;
+    min-width: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel);
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .pill #statusText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pill .dot { flex: 0 0 auto; }
+  .header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .header-right .pill { max-width: 100%; }
+  .license-pill {
+    min-height: 36px;
+    padding: 0 13px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .license-pill.low { color: var(--amber); border-color: rgba(245, 158, 11, 0.45); }
+  .license-pill.unlimited { color: var(--accent); border-color: rgba(45, 212, 191, 0.45); }
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--muted);
+    box-shadow: 0 0 0 3px rgba(143, 163, 192, 0.12);
+  }
+  .pill.ok { color: var(--green); border-color: rgba(74, 222, 128, 0.35); }
+  .pill.ok .dot { background: var(--green); box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15); }
+  .pill.err { color: var(--red); border-color: rgba(248, 113, 113, 0.35); }
+  .pill.err .dot { background: var(--red); box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15); }
+
+  .card {
+    background: linear-gradient(180deg, rgba(23, 37, 58, 0.92), rgba(17, 28, 46, 0.92));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .row + .row { margin-top: 10px; }
+  .grow { flex: 1 1 220px; min-width: 0; }
+  label.small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+  select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 38px 0 12px;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: var(--panel-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238fa3c0' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    color: var(--text);
+    font-size: 14px;
+    appearance: none;
+    outline: none;
+  }
+  select:focus { border-color: var(--accent); }
+  button {
+    font: inherit;
+    color: var(--text);
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: 12px;
+    min-height: 46px;
+    padding: 0 16px;
+    cursor: pointer;
+    transition: transform 0.06s ease, filter 0.15s ease, border-color 0.15s ease;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  button:hover { border-color: #355070; }
+  button:active { transform: scale(0.97); filter: brightness(1.12); }
+  button:disabled { opacity: 0.42; cursor: not-allowed; }
+  button.primary {
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    border-color: transparent;
+    color: #06251f;
+    font-weight: 800;
+  }
+  button.warn {
+    background: rgba(245, 158, 11, 0.13);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: var(--amber);
+  }
+  .connect { min-width: 132px; }
+
+  .now {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 2px 2px 12px;
+  }
+  .now .key {
+    font-size: clamp(40px, 9vw, 64px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+  .now .key em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .now .hex {
+    color: var(--muted);
+    font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    text-align: right;
+    word-break: break-all;
+    max-width: 58%;
+  }
+
+  .quick {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .quick button { min-height: 54px; font-size: 15px; }
+  .quick .hint {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .key-btn {
+    min-height: 62px;
+    padding: 6px 2px;
+    border-radius: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .key-btn small {
+    color: var(--muted);
+    font: 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .key-btn.sharp { background: #0d1727; }
+  .key-btn.current {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent), 0 0 18px rgba(45, 212, 191, 0.18);
+    background: rgba(45, 212, 191, 0.14);
+  }
+  .key-btn.current small { color: var(--accent); }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 2px 8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .section-title b { color: var(--text); font-size: 14px; }
+
+  #log {
+    min-height: 104px;
+    max-height: 180px;
+    overflow: auto;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #08101d;
+    border: 1px solid #18263a;
+    font: 11px/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #a9bad4;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  #log .ok { color: var(--green); }
+  #log .bad { color: var(--red); }
+  #log .time { color: #5f7391; }
+  #log .muted { color: var(--muted); }
+
+  .foot {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.7;
+    margin: 2px 4px 0;
+  }
+  .foot code {
+    color: #b9cbe6;
+    background: #0a1424;
+    border: 1px solid #18263a;
+    border-radius: 5px;
+    padding: 1px 5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: rgba(245, 158, 11, 0.08);
+    border-radius: 9px;
+    padding: 9px 11px;
+    color: #f8d38b;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+  .callout[hidden] { display: none; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(3, 8, 16, 0.74);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .overlay[hidden] { display: none; }
+  .modal {
+    width: min(560px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #16243a, #0e1828);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .modal-head h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .icon-btn {
+    min-height: 36px;
+    padding: 0 11px;
+    border-radius: 9px;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .license-summary {
+    margin: 8px 0 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .license-summary b { color: var(--accent); }
+  .code-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    margin-bottom: 12px;
+  }
+  .code-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 8px 12px;
+    border: 1px solid #18263a;
+    border-radius: 10px;
+    background: #08101d;
+    color: #c7f8ef;
+    font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.6px;
+    word-break: break-all;
+  }
+  .activation-input {
+    width: 100%;
+    min-height: 82px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #08101d;
+    color: var(--text);
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    resize: vertical;
+    outline: none;
+  }
+  .activation-input:focus { border-color: var(--accent); }
+  .activate-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+  .activation-message {
+    min-height: 18px;
+    margin: 9px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .activation-message.ok { color: var(--green); }
+  .activation-message.bad { color: var(--red); }
+  .fine {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 760px) {
+    .app { padding-left: 12px; padding-right: 12px; }
+    header { align-items: flex-start; }
+    .brand { min-width: 0; }
+    .brand h1 { font-size: 21px; }
+    .keys { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .key-btn { min-height: 56px; }
+    .quick { grid-template-columns: 1fr 1fr; }
+    .quick .test-note { grid-column: 1 / -1; }
+    .now { align-items: flex-start; }
+    .now .hex { max-width: 52%; }
+  }
+  @media (max-width: 480px) {
+    header { flex-wrap: wrap; }
+    .pill { max-width: 100%; }
+    .header-right { width: 100%; justify-content: space-between; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>Ev Web 移调器</h1>
+      <p>PA700 测试 DEMO · v0.1</p>
+    </div>
+    <div class="header-right">
+      <button id="licenseBtn" class="license-pill" type="button">剩余 50 次</button>
+      <div id="status" class="pill"><span class="dot"></span><span id="statusText">未连接</span></div>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <div class="grow">
+        <label class="small" for="outputSelect">MIDI 输出（把 PA700 接在运行本页的手机 / 平板 / 电脑上）</label>
+        <select id="outputSelect" disabled>
+          <option value="">先点「连接 MIDI」</option>
+        </select>
+      </div>
+      <button id="connectBtn" class="primary connect">连接 MIDI</button>
+    </div>
+    <div class="row">
+      <button id="testNoteBtn" class="warn" style="flex: 1 1 180px" disabled>测试音 C4（只验证连接）</button>
+      <button id="refreshBtn" style="flex: 0 0 auto" disabled>刷新设备</button>
+    </div>
+    <div id="callout" class="callout" hidden></div>
+  </section>
+
+  <section class="card">
+    <div class="now">
+      <div class="key">当前 <em id="currentKey">C</em></div>
+      <div class="hex" id="lastHex">尚未发送<br>F0 7F 7F 04 04 00 40 F7</div>
+    </div>
+
+    <div class="quick">
+      <button class="primary" id="csharpBtn" disabled>
+        C#（+1）
+        <span class="hint">PA700 移调命令</span>
+      </button>
+      <button id="resetBtn" disabled>
+        回到 C（0）
+        <span class="hint">取消移调</span>
+      </button>
+      <button class="test-note" id="quickTestBtn" disabled>
+        测试音
+        <span class="hint">确认能出声</span>
+      </button>
+    </div>
+
+    <div class="section-title"><b>十二个调</b><span>点一下立即发送</span></div>
+    <div class="keys" id="keys"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title"><b>发送记录</b><span id="logCount">0 条</span></div>
+    <div id="log">等待连接…</div>
+  </section>
+
+  <p class="foot">
+    命令格式：<code>F0 7F 7F 04 04 00 vv F7</code>（Universal Master Coarse Tuning）；
+    C = <code>40</code>，C# = <code>41</code>，每升高一个半音 +1。
+    首次连接时浏览器会询问 MIDI 权限，请选择「允许」。本页不联网，所有操作都在本机完成。
+  </p>
+</div>
+
+<div id="licenseOverlay" class="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
+    <div class="modal-head">
+      <h2 id="licenseTitle">激活 / 次数</h2>
+      <button id="closeLicenseBtn" class="icon-btn" type="button" aria-label="关闭">✕</button>
+    </div>
+    <p id="licenseSummary" class="license-summary">免费剩余 50 次</p>
+
+    <label class="small" for="deviceCode">设备码（发给发码方）</label>
+    <div class="code-row">
+      <code id="deviceCode" class="code-box">----</code>
+      <button id="copyDeviceBtn" type="button">复制</button>
+    </div>
+
+    <label class="small" for="activationInput">激活码</label>
+    <textarea id="activationInput" class="activation-input" rows="3"
+      placeholder="粘贴 EV1.…" autocomplete="off" autocapitalize="off"
+      autocorrect="off" spellcheck="false"></textarea>
+    <button id="activateBtn" class="primary activate-btn" type="button">激活</button>
+    <p id="activationMessage" class="activation-message" role="status"></p>
+
+    <p class="fine">
+      免费 50 次；每次成功发送移调扣 1 次，测试音和连接不扣。激活码绑定此浏览器，
+      清浏览器数据或换浏览器会失效。网页激活只能防普通分享，不能防改代码绕过。
+    </p>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const KEYS = [
+    { name: "C",  offset: 0  },
+    { name: "C#", offset: 1  },
+    { name: "D",  offset: 2  },
+    { name: "D#", offset: 3  },
+    { name: "E",  offset: 4  },
+    { name: "F",  offset: 5  },
+    { name: "F#", offset: 6  },
+    { name: "G",  offset: 7  },
+    { name: "G#", offset: 8  },
+    { name: "A",  offset: 9  },
+    { name: "A#", offset: 10 },
+    { name: "B",  offset: 11 }
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+  const statusText = $("statusText");
+  const outputSelect = $("outputSelect");
+  const connectBtn = $("connectBtn");
+  const refreshBtn = $("refreshBtn");
+  const testNoteBtn = $("testNoteBtn");
+  const quickTestBtn = $("quickTestBtn");
+  const csharpBtn = $("csharpBtn");
+  const resetBtn = $("resetBtn");
+  const keysEl = $("keys");
+  const currentKeyEl = $("currentKey");
+  const lastHexEl = $("lastHex");
+  const logEl = $("log");
+  const logCountEl = $("logCount");
+  const calloutEl = $("callout");
+  const licenseBtn = $("licenseBtn");
+  const licenseOverlay = $("licenseOverlay");
+  const licenseSummary = $("licenseSummary");
+  const deviceCodeEl = $("deviceCode");
+  const copyDeviceBtn = $("copyDeviceBtn");
+  const activationInput = $("activationInput");
+  const activateBtn = $("activateBtn");
+  const activationMessage = $("activationMessage");
+  const closeLicenseBtn = $("closeLicenseBtn");
+
+  // Same ECDSA P-256 public key as the Android app (SPKI DER, Base64).
+  // The private key stays in the license tool and is never shipped here.
+  const PUBLIC_KEY_BASE64 =
+    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEP5G5O8WjhGQTgpx7+4xQd1zWfVFDaGnLnPpy4AB8A/bo2OzcX6InF+O2auEmywT794/aohuAb95bCtllaLDypw==";
+  const LICENSE_STORAGE_KEY = "evwt.license.v1";
+  const FREE_BASE_COUNT = 50;
+  const MAX_ADD = 10000000;
+  const DEVICE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  let midiAccess = null;
+  let selectedOutputId = "";
+  let currentOffset = 0;
+  let logCount = 0;
+  let connecting = false;
+  let licenseState = loadLicenseState();
+  let publicKeyPromise = null;
+  let activating = false;
+
+  function hex(bytes) {
+    return bytes.map((b) => b.toString(16).toUpperCase().padStart(2, "0")).join(" ");
+  }
+
+  // Universal Real Time SysEx: Master Coarse Tuning (semitone).
+  // 0x40 is the center (C); +1 semitone (C#) is 0x41.
+  function transposeMessage(offset) {
+    const value = Math.max(0, Math.min(11, offset | 0));
+    return [0xF0, 0x7F, 0x7F, 0x04, 0x04, 0x00, 0x40 + value, 0xF7];
+  }
+
+  function setStatus(text, kind) {
+    statusText.textContent = text;
+    statusEl.className = "pill" + (kind ? " " + kind : "");
+  }
+
+  function showCallout(text) {
+    calloutEl.textContent = text;
+    calloutEl.hidden = !text;
+  }
+
+  function log(message, cls) {
+    const now = new Date();
+    const time = now.toTimeString().slice(0, 8);
+    const line = document.createElement("div");
+    line.innerHTML = '<span class="time">' + time + '</span>  ' +
+      (cls ? '<span class="' + cls + '">' : '<span>') +
+      escapeHtml(message) + "</span>";
+    logEl.prepend(line);
+    logCount++;
+    logCountEl.textContent = logCount + " 条";
+    while (logEl.children.length > 40) logEl.lastElementChild.remove();
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+
+  // ---------- 激活 / 次数 ----------
+
+  function randomDeviceCode() {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    let out = "";
+    for (let i = 0; i < 16; i++) {
+      out += DEVICE_ALPHABET[bytes[i] % DEVICE_ALPHABET.length];
+      if (i === 3 || i === 7 || i === 11) out += "-";
+    }
+    return out;
+  }
+
+  function loadLicenseState() {
+    const fallback = {
+      device: randomDeviceCode(),
+      balance: FREE_BASE_COUNT,
+      unlimited: false,
+      used: []
+    };
+    try {
+      const raw = localStorage.getItem(LICENSE_STORAGE_KEY);
+      if (!raw) {
+        localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(fallback));
+        return fallback;
+      }
+      const parsed = JSON.parse(raw);
+      const device = typeof parsed.device === "string" ? parsed.device.toUpperCase() : "";
+      if (!/^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){3}$/.test(device)) {
+        throw new Error("bad device");
+      }
+      return {
+        device,
+        balance: Number.isInteger(parsed.balance) ? Math.max(0, parsed.balance) : FREE_BASE_COUNT,
+        unlimited: parsed.unlimited === true,
+        used: Array.isArray(parsed.used)
+          ? parsed.used.filter((item) => typeof item === "string")
+          : []
+      };
+    } catch (_) {
+      try {
+        localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(fallback));
+      } catch (_) {}
+      return fallback;
+    }
+  }
+
+  function saveLicenseState() {
+    try {
+      localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(licenseState));
+    } catch (_) {}
+  }
+
+  function hasUses() {
+    return licenseState.unlimited || licenseState.balance > 0;
+  }
+
+  function consumeUse() {
+    if (licenseState.unlimited) return;
+    licenseState.balance = Math.max(0, licenseState.balance - 1);
+    saveLicenseState();
+    updateLicenseUi();
+  }
+
+  function updateLicenseUi() {
+    const unlimited = licenseState.unlimited;
+    licenseBtn.textContent = unlimited ? "无限制版" : "剩余 " + licenseState.balance + " 次";
+    licenseBtn.className = "license-pill" +
+      (unlimited ? " unlimited" : licenseState.balance <= 5 ? " low" : "");
+    licenseSummary.innerHTML = unlimited
+      ? "当前：<b>无限制版</b>，无需再激活"
+      : "剩余 <b>" + licenseState.balance + "</b> 次（每次成功发送移调扣 1 次）";
+    deviceCodeEl.textContent = licenseState.device;
+  }
+
+  function setActivationMessage(text, kind) {
+    activationMessage.textContent = text || "";
+    activationMessage.className = "activation-message" + (kind ? " " + kind : "");
+  }
+
+  function openLicense() {
+    updateLicenseUi();
+    licenseOverlay.hidden = false;
+    setTimeout(() => {
+      try { activationInput.focus(); } catch (_) {}
+    }, 30);
+  }
+
+  function closeLicense() {
+    licenseOverlay.hidden = true;
+    setActivationMessage("", "");
+  }
+
+  async function copyDeviceCode() {
+    try {
+      await navigator.clipboard.writeText(licenseState.device);
+      setActivationMessage("设备码已复制", "ok");
+    } catch (_) {
+      setActivationMessage("复制失败，请手动选中设备码复制", "bad");
+    }
+  }
+
+  function b64ToBytes(text) {
+    const clean = String(text).replace(/-/g, "+").replace(/_/g, "/").replace(/\s+/g, "");
+    const padded = clean + "=".repeat((4 - (clean.length % 4)) % 4);
+    const binary = atob(padded);
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  }
+
+  // WebCrypto returns/consumes raw r||s, while the license tool signs with
+  // DER (SHA256withECDSA on Android). Convert the DER signature back.
+  function derToRaw(der) {
+    if (!der || der[0] !== 0x30) throw new Error("签名格式错误");
+    let offset = 2;
+    if (der[1] & 0x80) throw new Error("签名格式不支持");
+    if (der[offset] !== 0x02) throw new Error("签名缺少 r");
+    const rLen = der[offset + 1];
+    let r = der.slice(offset + 2, offset + 2 + rLen);
+    offset += 2 + rLen;
+    if (der[offset] !== 0x02) throw new Error("签名缺少 s");
+    const sLen = der[offset + 1];
+    let s = der.slice(offset + 2, offset + 2 + sLen);
+    const normalize = (value) => {
+      while (value.length > 32 && value[0] === 0) value = value.slice(1);
+      while (value.length < 32) {
+        const next = new Uint8Array(value.length + 1);
+        next.set(value, 1);
+        value = next;
+      }
+      if (value.length !== 32) throw new Error("签名长度不正确");
+      return value;
+    };
+    const out = new Uint8Array(64);
+    out.set(normalize(r), 0);
+    out.set(normalize(s), 32);
+    return out;
+  }
+
+  function getPublicKey() {
+    if (!publicKeyPromise) {
+      publicKeyPromise = crypto.subtle.importKey(
+        "spki",
+        b64ToBytes(PUBLIC_KEY_BASE64),
+        { name: "ECDSA", namedCurve: "P-256" },
+        false,
+        ["verify"]
+      );
+    }
+    return publicKeyPromise;
+  }
+
+  async function activateLicense() {
+    if (activating) return;
+    const code = activationInput.value.trim();
+    if (!code) {
+      setActivationMessage("请先粘贴激活码", "bad");
+      return;
+    }
+    const parts = code.split(".");
+    if (parts.length !== 3 || parts[0] !== "EV1") {
+      setActivationMessage("激活码格式不正确", "bad");
+      return;
+    }
+    if (!crypto.subtle) {
+      setActivationMessage("当前浏览器不支持 WebCrypto，请用 Chrome / Edge", "bad");
+      return;
+    }
+
+    activating = true;
+    activateBtn.disabled = true;
+    activateBtn.textContent = "校验中…";
+    setActivationMessage("正在校验签名…", "");
+
+    try {
+      const payloadBytes = b64ToBytes(parts[1]);
+      const der = b64ToBytes(parts[2]);
+      const raw = derToRaw(der);
+      const key = await getPublicKey();
+      const valid = await crypto.subtle.verify(
+        { name: "ECDSA", hash: "SHA-256" },
+        key,
+        raw,
+        payloadBytes
+      );
+      if (!valid) throw new Error("签名校验失败");
+
+      const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
+      if (payload.v !== 1) throw new Error("激活码版本不支持");
+      if (payload.typ !== "topup") throw new Error("激活码类型不正确");
+      if (String(payload.device || "").toUpperCase() !== licenseState.device) {
+        throw new Error("这个激活码不是这台设备的");
+      }
+      if (!payload.vid || typeof payload.vid !== "string") {
+        throw new Error("激活码缺少编号");
+      }
+      const add = Number(payload.add);
+      if (!Number.isInteger(add) || add < 1 || add > MAX_ADD) {
+        throw new Error("激活次数无效");
+      }
+      const exp = Number(payload.exp || 0);
+      if (exp > 0 && Date.now() > exp * 1000) throw new Error("激活码已过期");
+      if (licenseState.used.includes(payload.vid)) {
+        throw new Error("这个激活码已经用过了");
+      }
+
+      licenseState.used.push(payload.vid);
+      if (add === 1) {
+        licenseState.unlimited = true;
+        setActivationMessage("激活成功：已升级为无限制版", "ok");
+        log("激活成功：无限制版", "ok");
+      } else {
+        licenseState.balance += add;
+        setActivationMessage("激活成功：+" + add + " 次，剩余 " + licenseState.balance + " 次", "ok");
+        log("激活成功：+" + add + " 次，剩余 " + licenseState.balance + " 次", "ok");
+      }
+      saveLicenseState();
+      updateLicenseUi();
+      activationInput.value = "";
+    } catch (err) {
+      const message = err && err.message ? err.message : String(err);
+      setActivationMessage(message, "bad");
+      log("激活失败：" + message, "bad");
+    } finally {
+      activating = false;
+      activateBtn.disabled = false;
+      activateBtn.textContent = "激活";
+    }
+  }
+
+  function supportsMidi() {
+    return typeof navigator.requestMIDIAccess === "function";
+  }
+
+  function outputList() {
+    if (!midiAccess) return [];
+    return Array.from(midiAccess.outputs.values());
+  }
+
+  function renderOutputs() {
+    const outputs = outputList();
+    outputSelect.innerHTML = "";
+
+    if (!outputs.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "没有找到 MIDI 输出";
+      outputSelect.appendChild(opt);
+      outputSelect.disabled = true;
+      setStatus("未发现 MIDI 琴", "err");
+      showCallout("没有找到 MIDI 输出。请确认 PA700 已用 USB 接在本机，并在系统里选择 USB MIDI；第一次连接时还要在系统弹窗里点「允许」。");
+      updateEnabled();
+      return;
+    }
+
+    outputs.forEach((output) => {
+      const opt = document.createElement("option");
+      opt.value = output.id;
+      opt.textContent = (output.name || "未命名 MIDI 输出") +
+        (output.manufacturer ? " · " + output.manufacturer : "");
+      outputSelect.appendChild(opt);
+    });
+
+    const preferred = outputs.find((o) => /pa\s*700|pa700|korg/i.test(o.name || "")) || outputs[0];
+    if (!outputs.some((o) => o.id === selectedOutputId)) {
+      selectedOutputId = preferred.id;
+    }
+    outputSelect.value = selectedOutputId;
+    outputSelect.disabled = false;
+    const selected = outputs.find((o) => o.id === selectedOutputId) || preferred;
+    setStatus("已连接 · " + (selected.name || selected.id), "ok");
+    statusEl.title = selected.name || selected.id;
+    showCallout("");
+    updateEnabled();
+    log("找到 " + outputs.length + " 个 MIDI 输出：" +
+      outputs.map((o) => o.name || o.id).join("、"), "ok");
+  }
+
+  function updateEnabled() {
+    const ready = !!selectedOutputId;
+    csharpBtn.disabled = !ready;
+    resetBtn.disabled = !ready;
+    testNoteBtn.disabled = !ready;
+    quickTestBtn.disabled = !ready;
+    refreshBtn.disabled = !midiAccess;
+  }
+
+  function getOutput() {
+    if (!midiAccess || !selectedOutputId) return null;
+    return midiAccess.outputs.get(selectedOutputId) || null;
+  }
+
+  function send(bytes, label) {
+    const output = getOutput();
+    if (!output) {
+      log("没有可用的 MIDI 输出，先连接 MIDI", "bad");
+      setStatus("未连接", "err");
+      return false;
+    }
+    try {
+      output.send(bytes);
+      lastHexEl.innerHTML = (label ? label + "<br>" : "") + hex(bytes);
+      log((label ? label + " → " : "") + hex(bytes), "ok");
+      return true;
+    } catch (err) {
+      log("发送失败：" + (err && err.message ? err.message : err), "bad");
+      return false;
+    }
+  }
+
+  function selectKey(offset) {
+    if (!hasUses()) {
+      setActivationMessage("免费次数已用完，请粘贴激活码", "bad");
+      openLicense();
+      log("免费次数已用完，请激活后继续", "bad");
+      return;
+    }
+    const key = KEYS.find((k) => k.offset === offset) || KEYS[0];
+    currentOffset = key.offset;
+    currentKeyEl.textContent = key.name;
+    document.querySelectorAll(".key-btn").forEach((btn) => {
+      btn.classList.toggle("current", Number(btn.dataset.offset) === offset);
+    });
+    const bytes = transposeMessage(offset);
+    const sent = send(bytes, "PA700 移调 " + key.name + "（" + (offset >= 0 ? "+" : "") + offset + "）");
+    if (sent) consumeUse();
+  }
+
+  function testNote() {
+    const output = getOutput();
+    if (!output) {
+      log("没有可用的 MIDI 输出，先连接 MIDI", "bad");
+      return;
+    }
+    try {
+      output.send([0x90, 60, 100]);
+      log("测试音 Note On → 90 3C 64", "ok");
+      setTimeout(() => {
+        try { output.send([0x80, 60, 0]); } catch (_) {}
+        log("测试音 Note Off → 80 3C 00", "muted");
+      }, 320);
+    } catch (err) {
+      log("测试音发送失败：" + (err && err.message ? err.message : err), "bad");
+    }
+  }
+
+  async function connect() {
+    if (connecting) return;
+    if (!supportsMidi()) {
+      setStatus("浏览器不支持", "err");
+      showCallout("这个浏览器没有 Web MIDI。请用 Chrome 或 Edge（Android 手机/平板、Windows、Mac 都可以）；Safari / iPhone / iPad 不支持。");
+      log("navigator.requestMIDIAccess 不存在，浏览器不支持 Web MIDI", "bad");
+      return;
+    }
+
+    connecting = true;
+    connectBtn.disabled = true;
+    setStatus("连接中…", "");
+    log("请求 MIDI 权限（含 SysEx）…", "muted");
+
+    try {
+      midiAccess = await navigator.requestMIDIAccess({ sysex: true });
+      midiAccess.onstatechange = () => {
+        log("MIDI 设备状态变化，刷新列表", "muted");
+        renderOutputs();
+      };
+      connectBtn.textContent = "重新连接";
+      refreshBtn.disabled = false;
+      log("MIDI 权限已允许", "ok");
+      renderOutputs();
+    } catch (err) {
+      midiAccess = null;
+      setStatus("连接失败", "err");
+      const name = err && err.name ? err.name : "";
+      const message = err && err.message ? err.message : String(err);
+      log("连接失败：" + name + " " + message, "bad");
+      if (name === "SecurityError") {
+        showCallout("浏览器拒绝了 MIDI 权限。本页必须用 Chrome/Edge 打开；如果是从网上下载的文件，请确认没有被浏览器当成不安全页面。点「连接 MIDI」时请选择「允许」。");
+      } else if (name === "NotAllowedError") {
+        showCallout("MIDI 权限被拒绝。请点地址栏左侧的图标，把 MIDI 权限改为「允许」，再点「重新连接」。");
+      } else {
+        showCallout("无法访问 MIDI：" + message + "。请确认浏览器是 Chrome/Edge，并且 PA700 已接好 USB。");
+      }
+    } finally {
+      connecting = false;
+      connectBtn.disabled = false;
+    }
+  }
+
+  function buildKeys() {
+    KEYS.forEach((key) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "key-btn" + (key.name.includes("#") ? " sharp" : "");
+      btn.dataset.offset = String(key.offset);
+      btn.innerHTML = escapeHtml(key.name) +
+        "<small>" + (key.offset === 0 ? "0" : "+" + key.offset) + "</small>";
+      btn.setAttribute("aria-label", key.name + "，移调 " + key.offset + " 个半音");
+      btn.addEventListener("click", () => selectKey(key.offset));
+      keysEl.appendChild(btn);
+    });
+    document.querySelector('.key-btn[data-offset="0"]').classList.add("current");
+  }
+
+  // Wire up
+  connectBtn.addEventListener("click", connect);
+  refreshBtn.addEventListener("click", () => {
+    renderOutputs();
+    log("已刷新 MIDI 输出", "muted");
+  });
+  outputSelect.addEventListener("change", () => {
+    selectedOutputId = outputSelect.value;
+    const out = getOutput();
+    setStatus(out ? "已连接 · " + (out.name || out.id) : "未连接", out ? "ok" : "err");
+    statusEl.title = out ? (out.name || out.id) : "";
+    log("选择输出：" + (out ? (out.name || out.id) : "无"), "muted");
+    updateEnabled();
+  });
+  csharpBtn.addEventListener("click", () => selectKey(1));
+  resetBtn.addEventListener("click", () => selectKey(0));
+  testNoteBtn.addEventListener("click", testNote);
+  quickTestBtn.addEventListener("click", testNote);
+
+  licenseBtn.addEventListener("click", openLicense);
+  closeLicenseBtn.addEventListener("click", closeLicense);
+  licenseOverlay.addEventListener("click", (event) => {
+    if (event.target === licenseOverlay) closeLicense();
+  });
+  copyDeviceBtn.addEventListener("click", copyDeviceCode);
+  activateBtn.addEventListener("click", activateLicense);
+  activationInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      activateLicense();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !licenseOverlay.hidden) closeLicense();
+  });
+
+  buildKeys();
+  updateLicenseUi();
+  updateEnabled();
+
+  if (!supportsMidi()) {
+    setStatus("浏览器不支持", "err");
+    showCallout("这个浏览器没有 Web MIDI。请用 Chrome 或 Edge 打开本页（Android 手机/平板、Windows、Mac 都可以）；Safari / iPhone / iPad 不支持。");
+  } else {
+    setStatus("未连接", "");
+  }
+
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>

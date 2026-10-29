@@ -1,0 +1,51 @@
+/* iPad / large-screen refinements. Single-pane remains the Android layout. */
+
+@media (min-width: 1000px) {
+  :root {
+    --app-pad-x: 18px;
+    --app-pad-y: 10px;
+  }
+
+  .titleblock h1 {
+    font-size: 22px;
+  }
+
+  .current-offset {
+    font-size: 30px;
+  }
+
+  .current-note {
+    font-size: 23px;
+  }
+
+  .control-bar {
+    height: 64px;
+  }
+
+  .action-symbol {
+    font-size: 30px;
+    line-height: 32px;
+  }
+}
+
+@media (hover: hover) {
+  .small-btn:hover,
+  .icon-btn:hover,
+  .chip:hover,
+  .dialog-action:hover,
+  .banner-btn:hover {
+    filter: brightness(1.08);
+  }
+
+  .key-button:hover {
+    filter: brightness(1.04);
+  }
+}
+
+/* In focus mode the browser chrome may still be visible in WKWebView; keep
+   the controls clear of the iPad status bar and rounded corners. */
+.focus-mode {
+  padding-left: calc(8px + env(safe-area-inset-left));
+  padding-right: calc(8px + env(safe-area-inset-right));
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+}
