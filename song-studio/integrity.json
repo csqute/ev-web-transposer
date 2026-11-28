@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "app": "studio",
+  "files": {
+    "app.js": "52af6d1376f37c16d95bfc96d90b85e0621368d82f3c55013e85c90f4438ecd3",
+    "core/license/crypto.js": "dac555ca2378833910e66337ac73a2d8590d179df5c1c2c3c6692d4180d6b1dd",
+    "core/license/seal.js": "50524b04f60e6056cd69692aad64beb44d28318b3c7c6daaf5a2f5dcfc1342a0",
+    "core/license/state.js": "1e349a8a1f9458e324f1b3dca9df6209260602430abd6869c8bd2c65e74bba27",
+    "core/license/verify.js": "f123ff91ca26823d0687e66223eb73a81be947deba4349834699320ef8490257",
+    "core/qr.js": "fffdf55c8445f35af8da0e378c995eb7e74968afe8f6f5877e321cff869ffed7",
+    "embed.css": "f6714b9adc47dddde5761fd6dcf05ae8b467816fcc9a9cefdbe3323079ec7746",
+    "index.html": "2db055f8371d699a992bcf4406487c95892bcbac876c05ecf1f4c1a808b573d1",
+    "license.css": "f00ad76bfc73974d0d353fb4eb42a4c809a048b43a98fbad852987e17b1ac03e",
+    "license.js": "4e7e9e1aee3edd697074fd3fe2a8c46e2dfe65bfd398e037a628245fe726e6f3",
+    "midi.js": "f6a06af419639a5d0c8d947667f8a62ab371f8c7ec5b2eb89e3da72f9e2523fc",
+    "styles.css": "87f12b6505259abaee91bb0b4a63e8525cfdba083c1d48090c61e34627eae2bb"
+  },
+  "sig": "MEUCIQCeOifUaNirpB3JOcRLa1mIJMRKGsRMqoY-1NEvgRWvxAIgcdH1IKQZ34E69NqW8Zr-uqFdR3OOoEglBjXAz5xMfYE"
+}

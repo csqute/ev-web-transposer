@@ -1,0 +1,586 @@
+/* Compact layout for Ev Song Studio when it runs inside another app's pane
+   (opened with ?embed=1). The standalone page never gets the .embed class, so
+   none of these rules affect the normal full-screen web app. */
+
+html.embed,
+html.embed body {
+  height: 100%;
+}
+
+html.embed .footer {
+  display: none;
+}
+
+/* ------------------------------------------------------------- top bars */
+
+/* One swipeable strip instead of the two-row phone header. */
+html.embed .topbar {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 3px 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+html.embed .brand {
+  display: none;
+}
+
+html.embed .top-actions {
+  flex: 0 0 auto;
+  width: auto;
+  gap: 4px;
+  overflow: visible;
+}
+
+html.embed .top-actions .btn {
+  height: 26px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+/* In a narrow pane the live controls must come before the housekeeping
+   buttons when the strip is scrolled only part-way into view. */
+html.embed #viewBtn { order: -30; }
+html.embed #connectBtn { order: -29; }
+html.embed #panicBtn { order: -28; }
+html.embed #songsBtn { order: -27; }
+html.embed #settingsBtn { order: -26; }
+html.embed #syncKbBtn { order: -25; }
+
+html.embed .badge {
+  padding: 2px 7px;
+  font-size: 10px;
+}
+
+html.embed .badge.song {
+  max-width: 128px;
+}
+
+html.embed .transport {
+  min-height: 34px;
+  gap: 4px;
+  padding: 3px 6px;
+}
+
+html.embed .transport .btn {
+  height: 26px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+html.embed .transport .chip {
+  padding: 3px 7px;
+  font-size: 11px;
+}
+
+html.embed .transport .select {
+  max-width: 104px;
+  padding: 3px 5px;
+  font-size: 11px;
+}
+
+html.embed .wait-chip .num-input {
+  width: 2.8em;
+  padding: 1px 2px;
+  font-size: 11px;
+}
+
+html.embed .position {
+  font-size: 14px;
+}
+
+html.embed .status {
+  font-size: 11px;
+}
+
+html.embed .transport .small {
+  font-size: 10px;
+}
+
+/* ------------------------------------------------------------- workspace */
+
+html.embed .tracks-panel {
+  width: 164px;
+}
+
+html.embed .panel-head {
+  display: none;
+}
+
+html.embed .track-row {
+  min-height: 38px;
+  gap: 5px;
+  padding: 3px 5px;
+}
+
+html.embed .track-sub {
+  display: none;
+}
+
+html.embed .track-name {
+  font-size: 12px;
+}
+
+html.embed .track-color {
+  width: 5px;
+  height: 18px;
+}
+
+html.embed .track-index {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 4px;
+  font-size: 9px;
+}
+
+html.embed .track-toggle {
+  width: 20px;
+  height: 20px;
+}
+
+html.embed .track-header {
+  height: 32px;
+  gap: 4px;
+  padding: 0 5px;
+}
+
+html.embed .track-header .name {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.embed .track-header .sound {
+  display: none;
+}
+
+html.embed .track-header .btn.tiny {
+  padding: 1px 5px;
+  font-size: 10px;
+}
+
+.embed-track-select {
+  height: 24px;
+  max-width: 108px;
+  padding: 1px 4px;
+  border-color: var(--accent);
+  border-radius: 6px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 11px;
+  flex: none;
+}
+
+.embed-toggle.on-mute {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.embed-toggle.on-solo {
+  background: var(--accent-alt);
+  border-color: var(--accent-alt);
+  color: var(--bg);
+}
+
+.embed-toggle.on-record {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.embed-expand {
+  min-width: 26px;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------- piano roll */
+
+html.embed .keys-canvas {
+  width: 38px;
+}
+
+html.embed .tool-switch {
+  top: 3px;
+  left: 44px;
+  padding: 1px 2px;
+}
+
+html.embed .tool-btn {
+  min-width: 30px;
+  height: 19px;
+  padding: 0 4px;
+  font-size: 9px;
+}
+
+html.embed .zoom-controls {
+  top: 3px;
+  right: 5px;
+  padding: 1px 2px;
+}
+
+html.embed .zoom-controls .small {
+  display: none;
+}
+
+html.embed .zoom-btn {
+  min-width: 22px;
+  height: 19px;
+  font-size: 9px;
+}
+
+html.embed .zoom-label {
+  min-width: 46px;
+  font-size: 8px;
+}
+
+html.embed .editbar,
+html.embed .recordbar {
+  min-height: 27px;
+  gap: 3px;
+  padding: 1px 4px;
+}
+
+html.embed .editbar .divider,
+html.embed .recordbar .divider {
+  height: 13px;
+  margin: 0 1px;
+}
+
+html.embed .editbar .btn.tiny,
+html.embed .recordbar .btn.tiny {
+  padding: 1px 4px;
+  font-size: 10px;
+}
+
+html.embed .recordbar .chip {
+  padding: 1px 5px;
+  font-size: 10px;
+}
+
+html.embed .select.small-select {
+  max-width: 68px;
+  padding: 1px 3px;
+  font-size: 10px;
+}
+
+/* ------------------------------------------------------------- pattern grid */
+
+html.embed .pattern-head {
+  gap: 4px;
+  padding: 2px 6px;
+}
+
+/* Never let the title wrap into a tall column when the actions take the width. */
+html.embed .pattern-head-text {
+  min-width: 0;
+}
+
+html.embed .pattern-head-text .pattern-title,
+html.embed .pattern-head-text .small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.embed .pattern-title {
+  font-size: 14px;
+}
+
+html.embed .pattern-head-actions {
+  flex-wrap: nowrap;
+  gap: 3px;
+}
+
+html.embed .pattern-head-actions .btn {
+  padding: 2px 5px;
+  font-size: 10px;
+}
+
+html.embed .song-bar {
+  gap: 4px;
+  padding: 2px 6px;
+}
+
+html.embed .song-bar .chip {
+  min-height: 24px;
+  padding: 2px 6px;
+  font-size: 10px;
+}
+
+html.embed .song-bar .btn.tiny {
+  padding: 2px 5px;
+  font-size: 10px;
+}
+
+/* The long "how to use" line is unnecessary in a tiny live pane. */
+html.embed .song-bar > .small.muted:last-child {
+  display: none;
+}
+
+html.embed .pattern-columns {
+  height: 28px;
+}
+
+html.embed .pattern-letter-btn {
+  height: 22px;
+  font-size: 10px;
+}
+
+html.embed .pattern-row {
+  min-height: 34px;
+}
+
+html.embed .pattern-track-name {
+  font-size: 11px;
+}
+
+html.embed .pattern-track-sub {
+  display: none;
+}
+
+html.embed .pattern-cell .pc-letter {
+  font-size: 11px;
+}
+
+html.embed .pattern-cell .pc-meta {
+  font-size: 9px;
+}
+
+html.embed .pattern-detail {
+  display: none;
+}
+
+/* ------------------------------------------------------------- dialogs */
+
+html.embed .modal {
+  padding: 6px;
+}
+
+html.embed .dialog {
+  max-height: 96vh;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+html.embed .dialog h2 {
+  font-size: 16px;
+}
+
+html.embed .dialog p {
+  margin: 4px 0;
+}
+
+html.embed .dialog .small {
+  font-size: 11px;
+}
+
+html.embed .dialog-actions {
+  gap: 5px;
+  margin-top: 8px;
+}
+
+html.embed .sound-filters {
+  grid-template-columns: 1fr 1fr;
+}
+
+html.embed .sound-filters input {
+  grid-column: 1 / -1;
+}
+
+html.embed .sound-list {
+  max-height: 46vh;
+}
+
+html.embed .tempo-dial-wrap,
+html.embed .tempo-dial {
+  width: 180px;
+  height: 180px;
+}
+
+html.embed .tempo-layout {
+  gap: 12px;
+}
+
+/* ------------------------------------------------------------- tiny panes */
+
+/* Four-pane phones / narrow split panes: the track list costs too much width,
+   so hide it and rely on the header selector + M/S added in embed mode. */
+@media (max-width: 520px) {
+  html.embed .tracks-panel {
+    display: none;
+  }
+
+  html.embed .track-header .name {
+    display: none;
+  }
+
+  html.embed .pattern-zoom-content {
+    --track-col: 128px;
+  }
+
+  html.embed .pattern-grid {
+    min-width: calc(var(--track-col, 128px) + var(--section-count, 8) * 60px);
+  }
+
+  /* Narrow panes: stack M/S/R so the track name keeps its width. */
+  html.embed .pattern-track > .pattern-track-btns {
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  html.embed .pattern-track-arm {
+    width: 20px;
+    height: 14px;
+    border-radius: 4px;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  html.embed #noteInfo,
+  html.embed #patternInfo {
+    display: none;
+  }
+
+  html.embed .zoom-label {
+    min-width: 38px;
+  }
+}
+
+@media (max-width: 380px) {
+  html.embed .top-actions .btn,
+  html.embed .transport .btn {
+    padding: 2px 5px;
+    font-size: 10px;
+  }
+
+  html.embed .transport .select {
+    max-width: 84px;
+  }
+
+  html.embed .embed-track-select {
+    max-width: 88px;
+  }
+
+  html.embed .song-label {
+    display: none;
+  }
+
+  html.embed .dialog {
+    padding: 8px;
+  }
+}
+
+/* Very short panes (landscape phones, 4-pane grids): shave the remaining
+   non-playing rows without hiding any controls. */
+@media (max-height: 380px) {
+  html.embed .topbar {
+    min-height: 26px;
+    padding: 2px 5px;
+  }
+
+  html.embed .transport {
+    min-height: 30px;
+    padding: 2px 5px;
+  }
+
+  html.embed .transport .btn {
+    height: 24px;
+  }
+
+  html.embed .track-header {
+    height: 28px;
+  }
+
+  html.embed .editbar,
+  html.embed .recordbar {
+    min-height: 24px;
+  }
+
+  html.embed .pattern-head,
+  html.embed .song-bar {
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+}
+
+/* ---------------------------------------------------- paired studio panes */
+
+/* The Pattern pane is a live remote for the recording pane. Housekeeping and
+   sound/setup controls stay in the recording pane, which owns MIDI. */
+html.embed.pane-paired #viewBtn {
+  display: none;
+}
+
+html.embed.pane-follower #songsBtn,
+html.embed.pane-follower #syncKbBtn,
+html.embed.pane-follower #newBtn,
+html.embed.pane-follower #clearAllBtn,
+html.embed.pane-follower #settingsBtn,
+html.embed.pane-follower #connectBtn,
+html.embed.pane-follower #monitorChk,
+html.embed.pane-follower #soundOut {
+  display: none;
+}
+
+html.embed.pane-follower #metronomeChk,
+html.embed.pane-follower #metronomeOut,
+html.embed.pane-follower #metronomeRhythm,
+html.embed.pane-follower #metronomeSound,
+html.embed.pane-follower #metronomeChannel {
+  opacity: 0.72;
+}
+
+html.embed.pane-pattern .pattern-detail {
+  display: none;
+}
+
+/* ------------------------------------------------------------- live mixer */
+
+/* Keep the live mixing entry next to the other performance controls at the
+   front of the swipeable top strip. */
+html.embed #mixerBtn { order: -24; }
+
+html.embed .mixer-head {
+  gap: 6px;
+  padding: 4px 8px;
+}
+
+html.embed .mixer-title { font-size: 14px; }
+html.embed .mixer-hint { display: none; }
+html.embed .mixer-head-actions { gap: 6px; }
+html.embed .mixer-head-actions .btn { padding: 3px 8px; font-size: 11px; }
+html.embed .mixer-transport { gap: 3px; }
+html.embed .mixer-position { min-width: 56px; padding: 2px 5px; font-size: 10px; }
+html.embed .mixer-body { padding: 6px; }
+
+html.embed .mixer-strips {
+  gap: 4px;
+  min-height: 210px;
+}
+
+html.embed .mixer-strip {
+  flex-basis: 64px;
+  min-width: 58px;
+  gap: 4px;
+  padding: 4px 4px 6px;
+}
+
+html.embed .mixer-strip-head { padding: 3px 4px; }
+html.embed .mixer-strip-name { font-size: 11px; }
+html.embed .mixer-strip-ch { font-size: 9px; }
+html.embed .mixer-knob { width: 28px; height: 28px; }
+html.embed .mixer-knob-pointer { height: 10px; top: 4px; }
+html.embed .mixer-ms-btn { padding: 2px 0; font-size: 10px; }
+html.embed .mixer-fader-thumb { width: 24px; height: 12px; }
+html.embed .mixer-fader-value { font-size: 10px; min-width: 26px; }
+
+@media (max-height: 380px) {
+  html.embed .mixer-strips { min-height: 190px; }
+  html.embed .mixer-fader-wrap { min-height: 60px; }
+}

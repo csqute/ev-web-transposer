@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e1620">
+  <title>Ev Song Studio Web</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css?v=3.40.8">
+  <link rel="stylesheet" href="embed.css?v=3.40.8">
+  <link rel="stylesheet" href="license.css?v=3.40.8">
+  <script>
+    // Applied before first paint so the compact embedded layout does not flash.
+    try {
+      if (new URLSearchParams(location.search).get("embed") === "1") {
+        document.documentElement.classList.add("embed");
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body>
+  <div id="licenseGate" class="license-gate" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
+    <div class="license-card">
+      <div class="license-head">
+        <div class="license-lock">🔒</div>
+        <h2 id="licenseTitle">激活 Ev Song Studio</h2>
+      </div>
+      <p class="license-small" style="margin-top:0">歌曲工作室需要激活后才能使用。支持永久版或按天数（日卡 / 周卡 / 月卡 / 自定义天数）。</p>
+      <div class="license-status-row">
+        <span id="licenseStatus" class="license-status">未激活</span>
+        <span id="licenseUntil" class="license-until"></span>
+      </div>
+      <span class="license-field">设备码（发给客服发码）</span>
+      <div class="license-device-line">
+        <code id="licenseDevice" class="license-device">读取中…</code>
+        <button id="licenseCopyBtn" type="button" class="btn tiny">复制</button>
+      </div>
+      <label class="license-field" for="licenseInput">激活码（EV1...）</label>
+      <textarea id="licenseInput" class="license-input" rows="3" placeholder="粘贴 EV1 开头的激活码"></textarea>
+      <div class="license-actions">
+        <button id="licensePasteBtn" type="button" class="btn tiny">粘贴</button>
+        <button id="licenseActivateBtn" type="button" class="btn primary">激活</button>
+        <button id="licenseRefreshBtn" type="button" class="btn tiny">重新检查</button>
+      </div>
+      <p id="licenseMessage" class="license-message"></p>
+      <div class="license-buy">
+        <img class="license-qr" src="./assets/contact_qr.jpg" alt="微信客服二维码">
+        <div class="license-buy-text">
+          <p>扫码添加微信购买永久版或日卡 / 周卡 / 月卡。</p>
+          <p>发码时把上面的设备码发给客服。激活成功后设备码会自动更新。</p>
+        </div>
+      </div>
+      <p class="license-small">授权保存在本浏览器；清空浏览器数据或换浏览器后需要重新激活。Ev移调器 的永久版/时长卡会自动解锁内嵌工作室，但独立打开这个网站需要单独的工作室授权。</p>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="title">Ev Song Studio <span class="ver">WEB 3.40.8</span></div>
+      <div id="subTitle" class="sub">Pattern A · 4 小节 · 4/4 · 0 音符</div>
+    </div>
+    <div class="top-actions">
+      <span id="songNameBadge" class="badge song" title="当前歌曲名">新歌曲</span>
+      <span id="midiBadge" class="badge bad">Web MIDI 未连接</span>
+      <button id="viewBtn" class="btn">Pattern</button>
+      <button id="mixerBtn" class="btn" title="混音台（X）：播放中实时调整每轨音量、声像、静音/独奏">混音台</button>
+      <button id="songsBtn" class="btn">歌曲</button>
+      <button id="syncKbBtn" class="btn" title="把当前工程每轨的音色（Bank/PC）和速度同步到琴">同步琴</button>
+      <button id="newBtn" class="btn ghost">新建</button>
+      <button id="clearAllBtn" class="btn ghost danger-text" title="清空所有轨道、所有 Pattern 的音符和控制；轨道名称/音色/音量保留，可撤销">清空全部</button>
+      <button id="settingsBtn" class="btn">设置</button>
+      <button id="connectBtn" class="btn primary">连接 MIDI</button>
+      <button id="panicBtn" class="btn danger" title="紧急停止所有发声：All Sound Off / All Notes Off / 延音关 / 弯音回中；用于卡音">Panic</button>
+    </div>
+  </header>
+
+  <section class="transport">
+    <button id="playBtn" class="btn primary">播放</button>
+    <button id="stopBtn" class="btn">停止</button>
+    <button id="recordBtn" class="btn danger">录音</button>
+    <div id="position" class="position">1.1.000</div>
+    <div id="transportStatus" class="status muted">循环</div>
+    <button id="bpmBtn" class="chip">120 BPM</button>
+    <button id="lengthBtn" class="chip">4 小节</button>
+    <label class="chip wait-chip" title="从停止状态点「播放」时，先等待这么多小节再开始；开了节拍器会响预备拍，没开则静默等待；0 = 立即播放">
+      等待 <input id="playWaitInput" class="num-input" type="number" min="0" max="64" step="1" value="0" inputmode="numeric"> 小节
+    </label>
+    <button id="transposeBtn" class="chip" title="整个工程移调，鼓轨自动不参与">移调 0</button>
+    <label class="chip"><input type="checkbox" id="metronomeChk" checked> 节拍器</label>
+    <select id="metronomeOut" class="select" title="节拍器输出">
+      <option value="pa700">琴输出</option>
+      <option value="phone">手机</option>
+    </select>
+    <select id="metronomeRhythm" class="select" title="节拍器节奏">
+      <option value="quarter">四分</option>
+      <option value="eighth">八分</option>
+      <option value="eighthTriplet">八分三连</option>
+      <option value="sixteenth">十六分</option>
+      <option value="sixteenthTriplet">十六分三连</option>
+    </select>
+    <select id="metronomeSound" class="select" title="节拍器音色">
+      <option value="sfx" title="KORG 用 GM2 SFX 鼓组；Yamaha 合成器自动改用 Stereo GM Kit 的开镲/闭镲">电子节拍 GM2</option>
+      <option value="claves">高音木鱼</option>
+      <option value="cowbell">牛铃</option>
+      <option value="woodblock">木块</option>
+      <option value="sideStick">鼓边</option>
+    </select>
+    <select id="metronomeChannel" class="select" title="节拍器使用的 MIDI 轨道/通道（默认 Ch16）">
+      <option value="0">Ch1</option>
+      <option value="1">Ch2</option>
+      <option value="2">Ch3</option>
+      <option value="3">Ch4</option>
+      <option value="4">Ch5</option>
+      <option value="5">Ch6</option>
+      <option value="6">Ch7</option>
+      <option value="7">Ch8</option>
+      <option value="8">Ch9</option>
+      <option value="9">Ch10</option>
+      <option value="10">Ch11</option>
+      <option value="11">Ch12</option>
+      <option value="12">Ch13</option>
+      <option value="13">Ch14</option>
+      <option value="14">Ch15</option>
+      <option value="15" selected>Ch16</option>
+    </select>
+    <button id="clickTestBtn" class="chip">试听</button>
+    <label class="chip"><input type="checkbox" id="monitorChk" checked> 监听</label>
+    <select id="soundOut" class="select" title="演奏/播放的声音输出">
+      <option value="auto">输出：自动</option>
+      <option value="midi">输出：只发琴</option>
+      <option value="internal">输出：内置音源</option>
+      <option value="both">输出：琴+内置</option>
+    </select>
+    <div id="inputStatus" class="small muted" style="white-space:nowrap">输入 —</div>
+  </section>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <main class="workspace">
+    <aside class="tracks-panel">
+      <div class="panel-head">
+        <span>轨道</span>
+        <span class="muted small">长按改名</span>
+      </div>
+      <div id="trackList" class="track-list"></div>
+    </aside>
+
+    <section class="studio">
+      <div id="trackHeader" class="track-header"></div>
+      <div class="roll-shell">
+        <canvas id="keysCanvas" class="keys-canvas"></canvas>
+        <div id="rollScroll" class="roll-scroll">
+          <canvas id="rollCanvas"></canvas>
+        </div>
+        <div class="tool-switch" id="toolSwitch" role="group" aria-label="卷帘工具">
+          <button class="tool-btn" type="button" data-tool="pan">拖动</button>
+          <button class="tool-btn active" type="button" data-tool="pencil">画笔</button>
+        </div>
+        <div class="zoom-controls" id="zoomControls">
+          <span class="small muted">缩放</span>
+          <button class="zoom-btn" data-zoom="hout">H−</button>
+          <button class="zoom-btn" data-zoom="hin">H+</button>
+          <span id="zoomLabel" class="zoom-label">100% / 100%</span>
+          <button class="zoom-btn" data-zoom="vout">V−</button>
+          <button class="zoom-btn" data-zoom="vin">V+</button>
+          <button class="zoom-btn" data-zoom="reset">1:1</button>
+        </div>
+      </div>
+      <div class="editbar">
+        <button class="btn tiny" id="undoBtn">撤销</button>
+        <button class="btn tiny" id="redoBtn">重做</button>
+        <span class="divider"></span>
+        <span id="noteInfo" class="small muted">点空白加音符 · 点音符选中 · 拖动移位</span>
+        <span id="noteActions" class="note-actions" hidden>
+          <button class="btn tiny" data-note="left" title="左移">←</button>
+          <button class="btn tiny" data-note="right" title="右移">→</button>
+          <button class="btn tiny" data-note="up" title="升高">↑</button>
+          <button class="btn tiny" data-note="down" title="降低">↓</button>
+          <button class="btn tiny" data-note="longer" title="加长">长+</button>
+          <button class="btn tiny" data-note="shorter" title="缩短">长−</button>
+          <button class="btn tiny" data-note="velUp" title="力度加">力度+</button>
+          <button class="btn tiny" data-note="velDown" title="力度减">力度−</button>
+          <button class="btn tiny danger-text" data-note="delete">删除</button>
+        </span>
+        <span class="divider"></span>
+        <span id="patternInfo" class="small muted"></span>
+      </div>
+      <div class="recordbar">
+        <span class="small muted">录音</span>
+        <label class="chip"><input type="radio" name="recordMode" value="overdub" checked> 叠加</label>
+        <label class="chip"><input type="radio" name="recordMode" value="replace"> 替换</label>
+        <span class="divider"></span>
+        <label class="small muted">倒数
+          <select id="countInSel" class="select small-select">
+            <option value="0">0</option>
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+          </select>
+        </label>
+        <label class="small muted">量化
+          <select id="quantizeSel" class="select small-select">
+            <option value="0">关闭</option>
+            <option value="960">1/4</option>
+            <option value="480">1/8</option>
+            <option value="320">1/8T</option>
+            <option value="240" selected>1/16</option>
+            <option value="160">1/16T</option>
+            <option value="120">1/32</option>
+            <option value="80">1/32T</option>
+          </select>
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <section id="patternView" class="pattern-view" hidden>
+    <div class="pattern-head">
+      <div class="pattern-head-text">
+        <div class="pattern-title">Pattern / Live</div>
+        <div id="patternGroupInfo" class="small muted">活动轨 · 组长度</div>
+      </div>
+      <div class="pattern-head-actions">
+        <button id="patternUndoBtn" class="btn tiny">撤销</button>
+        <button id="patternRedoBtn" class="btn tiny">重做</button>
+        <button id="patternEditBtn" class="btn tiny">编辑</button>
+        <button id="patternLengthBtn" class="btn tiny">长度/设置</button>
+        <button id="patternClearBtn" class="btn tiny danger-text">清空</button>
+      </div>
+    </div>
+    <div class="song-bar">
+      <span class="song-label">SONG</span>
+      <button id="songPrevBtn" class="btn tiny">◀ 上一段</button>
+      <span id="songStepLabel" class="chip">段落 A · 1/8</span>
+      <button id="songNextBtn" class="btn tiny">下一段 ▶</button>
+      <button id="addSectionBtn" class="btn tiny" title="新增段落：默认按 A–Z 命名；长按顶部段落按钮可改名或删除">＋ 段落</button>
+      <label class="chip"><input type="checkbox" id="songAutoChk"> 自动前进</label>
+      <span class="small muted">播放中：下一小节切段；停止时：设置待机段</span>
+    </div>
+    <div id="patternScroll" class="pattern-grid-scroll">
+      <div id="patternZoomContent" class="pattern-zoom-content">
+        <div class="pattern-columns">
+          <div class="pattern-track-head">轨道</div>
+          <div id="patternLetters" class="pattern-letters"></div>
+        </div>
+        <div id="patternGrid" class="pattern-grid"></div>
+      </div>
+    </div>
+    <div id="patternDetail" class="pattern-detail small muted">
+      点格：播放/停止（下一小节） · 点上方段落按钮：整段切换 · ＋：新增段落 · 长按/右键段落名：改名或删除 · 长按轨道名：轨道设置（改名 / 音色） · 双指缩放 · 单指拖动查看 · 长按格：复制/粘贴/删除 · 拖动：交换格内容
+    </div>
+  </section>
+
+  <div class="footer small muted">
+    Web MIDI 测试版 · Chrome / Edge · PA700 接在打开网页的电脑或平板 · 不影响原 Ev Web 移调器
+  </div>
+
+  <!-- MIDI connection dialog -->
+  <div id="midiDialog" class="modal" hidden>
+    <div class="dialog">
+      <h2>MIDI 连接</h2>
+      <p class="small muted">PA700 用 USB DEVICE 接电脑/平板。浏览器请用 Chrome 或 Edge；GitHub Pages 是 HTTPS，本地测试用 localhost。</p>
+      <p class="small muted">已授权过 MIDI 的浏览器，检测到一台 PA 会自动连接；检测到多台时会在弹窗里让你选择。</p>
+      <label class="field">键盘输入
+        <select id="inputSel"></select>
+      </label>
+      <label class="field">音源输出
+        <select id="outputSel"></select>
+      </label>
+      <div id="midiStatus" class="small muted"></div>
+      <div class="dialog-actions">
+        <button id="refreshPortsBtn" class="btn">刷新</button>
+        <button id="testChannelsBtn" class="btn">16 通道测试</button>
+        <button id="disconnectBtn" class="btn">断开</button>
+        <button id="midiConnectBtn" class="btn primary">连接</button>
+        <button data-close="midiDialog" class="btn ghost">关闭</button>
+      </div>
+      <details class="guide">
+        <summary>PA700 设置（重要）</summary>
+        <ol>
+          <li><code>Global &gt; MIDI &gt; General Controls</code>：MIDI Preset 用 <b>Default</b>，关闭 <b>Local Control On</b>。</li>
+          <li><code>Global &gt; MIDI &gt; MIDI OUT Channels</code>：把演奏通道设为 <b>Play Tr 01</b>（16 轨则 Ch1–Ch16 对应 Play Tr 01–16）；否则 SEQ 模式弹琴不会从 USB 发出来。</li>
+          <li>按 <b>SEQUENCER</b>，选空 Song；不要启动 PA700 自己的播放器/自动伴奏。</li>
+          <li>确认 MIDI Filters 没有过滤 Notes。</li>
+        </ol>
+      </details>
+    </div>
+  </div>
+
+  <!-- Sound picker -->
+  <div id="soundDialog" class="modal" hidden>
+    <div class="dialog wide">
+      <h2>音色表 <span id="soundCount" class="muted small"></span></h2>
+      <p class="small muted">选中会发送 Bank/PC，并在当前轨试听 C4。支持 KORG Pa3X / Pa4X / Pa5X / Pa300–Pa1000 / KROME EX / KRONOS，以及 Yamaha MODX / MODX+ / MODX M / MONTAGE / MONTAGE M。</p>
+      <p class="small muted">Yamaha 使用 Performance 列表（MSB 63 单声部）：琴上需 MIDI I/O Mode = Multi，Part 的 Program Change 接收开启；UTILITY → Settings → Advanced 里 Bank Select 和 Pgm Change 都要设为 On，否则只会换音色号、不换库（节拍器就不会变成鼓）。</p>
+      <p class="small muted">网页内置音源的音色在：选中轨道 →「轨道」→「内置音源音色（网页合成）」。两者互不影响。</p>
+      <div class="sound-filters">
+        <input id="soundSearch" type="search" placeholder="搜索音色名">
+        <select id="soundModel"></select>
+        <select id="soundSource"></select>
+        <select id="soundGroup"></select>
+      </div>
+      <div id="soundList" class="sound-list"></div>
+      <div class="dialog-actions">
+        <button id="customSoundBtn" class="btn">自定义 Bank/PC</button>
+        <button id="followSoundBtn" class="btn">跟随琴（不发音色）</button>
+        <button data-close="soundDialog" class="btn ghost">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Track settings -->
+  <div id="trackDialog" class="modal" hidden>
+    <div class="dialog">
+      <h2>轨道设置 <span id="trackDialogNum" class="track-index">1</span> <span id="trackDialogCh" class="muted small"></span></h2>
+      <p id="trackCurrentSound" class="track-current-sound"></p>
+      <label class="field">轨道名称
+        <input id="trackName" maxlength="24">
+      </label>
+      <label class="field">MIDI 通道（1–16）
+        <input id="trackChannel" type="number" min="1" max="16">
+      </label>
+      <p id="trackRoutingHint" class="muted small" hidden></p>
+      <div class="choice-row">
+        <button id="trackSoundBtn" class="btn">选琴上音色…</button>
+      </div>
+      <p class="small muted">打开音色表，点音色会立即发送 Bank/PC 并试听 C4；轨道名/音量等仍点下面的「应用」保存。</p>
+      <label class="field">音量 <span id="trackVolVal" class="muted small"></span>
+        <input id="trackVolume" type="range" min="0" max="127">
+      </label>
+      <p id="trackVolumeHint" class="small muted">与琴上同通道音量双向同步：琴上调会显示在这里，播放不覆盖琴上音量，点「应用」才发送。</p>
+      <label class="field">声像 <span id="trackPanVal" class="muted small"></span>
+        <input id="trackPan" type="range" min="0" max="127">
+      </label>
+      <label class="field">内置音源音色（网页合成）
+        <select id="trackSynthPreset"></select>
+      </label>
+      <p class="small muted">只影响网页内置音源；琴上的音色仍由「音色」按钮决定。「自动」按轨道音色/通道映射。</p>
+      <p class="small muted">整轨八度：把 ±12 直接写进这个通道在所有段落的 MIDI 音符（立即生效，可撤销）。</p>
+      <div class="choice-row">
+        <button id="trackOctaveDownBtn" class="btn tiny">降八度 −12</button>
+        <button id="trackOctaveUpBtn" class="btn tiny">升八度 +12</button>
+      </div>
+      <label class="field">与另一轨道交换音色 / Pattern
+        <select id="trackSwapTarget"></select>
+      </label>
+      <p class="small muted">把这条轨道的琴上音色、内置音源音色和所有段落 Pattern 跟所选轨道对调；交换后立即把两条轨道的新音色发到琴（跟随 PA700 的轨道不发）；自定义轨道名会随内容一起换到另一轨，没改过名的保留 Track 序号；通道、音量、声像不变，撤销/重做也会把音色同步回琴。</p>
+      <div class="choice-row">
+        <button id="trackSwapBtn" class="btn tiny">交换</button>
+      </div>
+      <div class="dialog-actions">
+        <button id="trackApplyBtn" class="btn primary">应用</button>
+        <button data-close="trackDialog" class="btn ghost">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pattern length -->
+  <div id="lengthDialog" class="modal" hidden>
+    <div class="dialog small-dialog">
+      <h2>录音 / 循环小节数</h2>
+      <p id="lengthCurrent" class="small muted"></p>
+      <div id="lengthChoices" class="choice-row"></div>
+      <label class="field">自定义小节数（1–64，例如 3）
+        <input id="lengthCustom" type="number" min="1" max="64" step="1" inputmode="numeric">
+      </label>
+      <div class="dialog-actions">
+        <button id="lengthCustomBtn" class="btn primary">应用自定义</button>
+        <button data-close="lengthDialog" class="btn ghost">关闭</button>
+      </div>
+      <p class="small muted">缩短长度会裁剪超出范围的音符，可撤销。</p>
+    </div>
+  </div>
+
+  <!-- Section rename / delete -->
+  <div id="sectionDialog" class="modal" hidden>
+    <div class="dialog small-dialog">
+      <h2>段落设置</h2>
+      <p id="sectionDialogInfo" class="small muted"></p>
+      <label class="field">段落名称（最多 12 个字）
+        <input id="sectionNameInput" maxlength="12" autocomplete="off">
+      </label>
+      <p class="small muted">默认名字按大写字母 A–Z 排；改成「主歌」「副歌」「Solo」等都可以，Pattern 页顶部和格子里会显示新名字。</p>
+      <div class="dialog-actions">
+        <button id="sectionDeleteBtn" class="btn danger-text">删除段落</button>
+        <button data-close="sectionDialog" class="btn ghost">取消</button>
+        <button id="sectionSaveBtn" class="btn primary">保存名称</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New song / blank project -->
+  <div id="newSongDialog" class="modal" hidden>
+    <div class="dialog small-dialog">
+      <h2>新建歌曲</h2>
+      <p class="small muted">创建一个空白工作区：16 轨 × 8 个段落（A–H，之后可随时增加或改名），4 小节，120 BPM，所有轨道恢复默认名称、音色和音量。</p>
+      <p class="small muted">当前工作区会被清空。已保存在「歌曲」里的歌曲不受影响；想保留当前内容，请先取消，在「歌曲」里点「保存当前」。</p>
+      <div class="dialog-actions">
+        <button id="newProjectBtn" class="btn primary">新建空白工程</button>
+        <button data-close="newSongDialog" class="btn ghost">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project-wide transpose -->
+  <div id="transposeDialog" class="modal" hidden>
+    <div class="dialog">
+      <h2>工程移调</h2>
+      <p class="small muted">实际发声 = 谱面音高 + 移调半音数。鼓轨（Ch10 或鼓组音色）自动不参与；钢琴卷帘里仍然显示原来写的音高。</p>
+      <label class="field">移调半音（-24 – +24）
+        <input id="transposeSemitones" type="number" min="-24" max="24" step="1" value="0" inputmode="numeric">
+      </label>
+      <div class="choice-row">
+        <button class="btn tiny" data-transpose-step="-12">−12</button>
+        <button class="btn tiny" data-transpose-step="-1">−1</button>
+        <button class="btn tiny" data-transpose-step="1">+1</button>
+        <button class="btn tiny" data-transpose-step="12">+12</button>
+        <button id="transposeResetBtn" class="btn tiny">归零</button>
+      </div>
+      <div class="transpose-select-row">
+        <span class="small muted">参与移调的轨道</span>
+        <button id="transposeSelectAll" class="btn tiny">全选（不含鼓）</button>
+        <button id="transposeSelectNone" class="btn tiny ghost">全不选</button>
+      </div>
+      <div id="transposeTrackList" class="transpose-track-list"></div>
+      <div class="dialog-actions">
+        <button id="transposeApplyBtn" class="btn primary">应用</button>
+        <button data-close="transposeDialog" class="btn ghost">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BPM / tempo sync -->
+  <div id="bpmDialog" class="modal" hidden>
+    <div class="dialog tempo-dialog">
+      <h2>速度 / 同步</h2>
+      <div class="tempo-layout">
+        <div class="tempo-dial-wrap">
+          <canvas id="bpmDial" class="tempo-dial" width="240" height="240"></canvas>
+          <div class="tempo-dial-center">
+            <span id="bpmDialValue">120</span>
+            <small>BPM</small>
+          </div>
+        </div>
+        <div class="tempo-controls">
+          <div class="tempo-button-row">
+            <button class="btn tiny" data-bpm-delta="-5">−5</button>
+            <button class="btn tiny" data-bpm-delta="-1">−1</button>
+            <button class="btn tiny" data-bpm-delta="1">+1</button>
+            <button class="btn tiny" data-bpm-delta="5">+5</button>
+          </div>
+          <label class="field">精确 BPM（20–300）
+            <input id="bpmInput" type="number" min="20" max="300" step="1">
+          </label>
+          <div class="tempo-button-row" id="bpmPresets">
+            <button class="btn tiny" data-bpm-preset="60">60</button>
+            <button class="btn tiny" data-bpm-preset="80">80</button>
+            <button class="btn tiny" data-bpm-preset="90">90</button>
+            <button class="btn tiny" data-bpm-preset="120">120</button>
+            <button class="btn tiny" data-bpm-preset="140">140</button>
+          </div>
+          <label class="field">速度同步
+            <select id="tempoSyncSel">
+              <option value="auto">自动（有琴时钟就跟，没有就发）</option>
+              <option value="off">关闭</option>
+              <option value="follow">跟随琴（收 MIDI Clock）</option>
+              <option value="send">琴跟随 App（发 MIDI Clock）</option>
+            </select>
+          </label>
+          <label class="chip"><input type="checkbox" id="clockTransportChk"> 同时发 Start/Stop</label>
+          <label class="chip"><input type="checkbox" id="receiveTransportChk"> 琴上播放/暂停控制 App</label>
+          <div class="tempo-button-row">
+            <button class="btn tiny" id="learnStartTriggerBtn" title="在 PA700 上按一下开关，把它学成开始键">学习开始键</button>
+            <span id="startTriggerStatus" class="small muted">开始键：未设置</span>
+            <button class="btn tiny ghost" id="clearStartTriggerBtn" hidden>清除</button>
+          </div>
+          <div class="tempo-button-row">
+            <button class="btn tiny" id="learnStopTriggerBtn" title="在 PA700 上按一下开关，把它学成停止键">学习停止键</button>
+            <span id="stopTriggerStatus" class="small muted">停止键：未设置</span>
+            <button class="btn tiny ghost" id="clearStopTriggerBtn" hidden>清除</button>
+          </div>
+          <p class="small muted">琴上控制键：PA700 的 Switch 1/2 设为 FX CC12/13 Switch，点「学习」后按一下开关。开始键从开头播放，停止键停止并回到开头；受上面的「琴上播放/暂停控制 App」总开关控制。</p>
+          <div class="tempo-button-row">
+            <button class="btn tiny" id="clockStartTestBtn" title="立即发 MIDI Start，让 PA700 开始播放并锁定 App 的速度">发送 Start 测试</button>
+            <button class="btn tiny" id="clockStopTestBtn" title="立即发 MIDI Stop 停止 PA700 的播放">停止琴</button>
+          </div>
+          <div id="tempoSyncStatus" class="small muted"></div>
+        </div>
+      </div>
+      <p class="small muted">播放中也能实时改速度。圆盘拖动或点 ± 快速调整。勾选「同时发 Start/Stop」后，按 App 播放会让 PA700 同时开始播放；不勾选时只发 MIDI Clock，不启动琴。</p>
+      <details class="tempo-help">
+        <summary class="small">PA700 设置 / 限制</summary>
+        <p class="small muted">琴跟随 App：PA700 的 Global &gt; MIDI &gt; General Controls 里把 Clock Source 设为 <b>External USB</b>（接 USB 时先试它；若琴上 External MIDI / External USB 两个都有，也可以两个都试），并关闭 Clock Send。外部时钟下 PA700 面板的 Start/Stop 不可用，必须由 App 发 Start。若琴上一直显示 250，说明它没有收到或没有锁定 App 的时钟：确认上面两项、确认不在 Song Play 模式，再试「同时发 Start/Stop」或「发送 Start 测试」。</p>
+        <p class="small muted">App 跟随琴：在 PA700 打开 Clock Send、Clock Source 保持 Internal；Clock Send 每次开机都会关闭，需要重新打开。PA700 只在 Style Play / Sequencer 模式接收外部时钟，Song Play 不支持。</p>
+        <p class="small muted">两个方向只开一个：跟随琴 = Internal + Clock Send 开；琴跟随 App = External USB + Clock Send 关，避免两台设备互相跟。</p>
+        <p class="small muted">琴上播放/暂停控制 App：PA700 打开 Clock Send（每次开机重置）后，Song Play 的 PLAY/STOP 键会发 MIDI Start/Stop。上面的「琴上播放/暂停控制 App」<b>默认已勾选</b>；按琴上播放会从 App 开头开始，琴上暂停（发 Stop）时 App 停在当前小节，再按琴上播放（发 Start/Continue）从原位置继续。若在「速度 / 同步」状态行看到「最近收到琴：Start」，说明琴的按键消息已经到 App。</p>
+        <p class="small muted">琴上控制键学习：在 PA700 的 Style Play &gt; Pads/Switches &gt; Switch 页把 Switch 1/2 设为 <b>FX CC12 Switch</b> / <b>FX CC13 Switch</b>，并保存到 Keyboard Set（每个 Keyboard Set 单独保存）。点上面的「学习开始键 / 学习停止键」后按一下对应的开关；学好后按开始键播放、按停止键停止并回到开头。这两个键和 Song Play 的 Start/Stop 共用「琴上播放/暂停控制 App」总开关。</p>
+        <p class="small muted">Track Select 不是 MIDI 消息：PA700 不会发送“当前轨道”，App 只能按输入通道跟随；App 选轨会发送该轨音色/CC，但不会移动琴上的轨选光标。</p>
+      </details>
+      <div class="dialog-actions">
+        <button id="bpmApplyBtn" class="btn primary">应用</button>
+        <button data-close="bpmDialog" class="btn ghost">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Long-press pattern cell menu -->
+  <div id="patternMenuDialog" class="modal" hidden>
+    <div class="dialog small-dialog">
+      <h2 id="patternMenuTitle">Pattern</h2>
+      <p id="patternMenuInfo" class="small muted"></p>
+      <div class="choice-row">
+        <button id="patternMenuEdit" class="btn primary">打开编辑</button>
+        <button id="patternMenuCopy" class="btn">复制</button>
+        <button id="patternMenuPaste" class="btn">粘贴</button>
+        <button id="patternMenuDelete" class="btn danger">删除内容</button>
+      </div>
+      <p class="small muted">复制后长按另一个格粘贴；按住格拖动可和另一个格交换内容。播放中操作会在下一遍生效，录音/倒数中不能粘贴、删除或拖动。</p>
+      <div class="dialog-actions">
+        <button data-close="patternMenuDialog" class="btn ghost">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Song library -->
+  <div id="songsDialog" class="modal" hidden>
+    <div class="dialog settings-dialog">
+      <h2>歌曲库</h2>
+      <div class="song-save-row">
+        <input id="songNameInput" maxlength="40" placeholder="歌曲名称（留空自动命名）">
+        <button id="songSaveBtn" class="btn primary">保存当前</button>
+      </div>
+      <p id="songSaveStatus" class="song-save-status small" hidden></p>
+      <p class="small muted">保存整个工程：16 轨、8 个 Pattern、音符、音色、速度、段落与自动前进设置。歌曲存在本机浏览器；清站点数据会丢失，重要歌曲请导出 JSON。</p>
+      <div class="song-pick-bar">
+        <label class="song-pick-all"><input type="checkbox" id="songPickAll"> 全选</label>
+        <span id="songPickInfo" class="small muted">勾选可分享 1 首或多首；不勾选则分享当前工作区</span>
+      </div>
+      <div id="songList" class="song-list"></div>
+      <div class="dialog-actions">
+        <button id="songExportBtn" class="btn tiny">导出当前 JSON</button>
+        <label class="btn tiny" for="songImportInput">导入 JSON</label>
+        <input id="songImportInput" type="file" accept=".json,application/json" hidden>
+        <button id="songMidiExportBtn" class="btn tiny">导出 MIDI</button>
+        <label class="btn tiny" for="songMidiImportInput">导入 MIDI</label>
+        <input id="songMidiImportInput" type="file"
+               accept=".mid,.midi,audio/midi,audio/x-midi" hidden>
+        <button id="songQrBtn" class="btn tiny">二维码分享</button>
+        <button data-close="songsDialog" class="btn ghost">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-app confirm (save overwrite / load / delete) -->
+  <div id="confirmDialog" class="modal nested-modal" hidden>
+    <div class="dialog small-dialog">
+      <h2 id="confirmTitle">确认</h2>
+      <p id="confirmText" class="small muted"></p>
+      <div class="dialog-actions">
+        <button id="confirmOkBtn" class="btn primary">确定</button>
+        <button data-close="confirmDialog" class="btn ghost">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings / MIDI monitor -->
+  <div id="settingsDialog" class="modal" hidden>
+    <div class="dialog settings-dialog">
+      <h2>设置 / MIDI 监听</h2>
+      <div class="settings-options">
+        <label class="chip">界面大小
+          <select id="uiScaleSel" class="small-select">
+            <option value="auto">自动</option>
+            <option value="standard">标准</option>
+            <option value="large">大</option>
+          </select>
+        </label>
+        <label class="chip">内置音源音量
+          <input id="synthVolume" type="range" min="0" max="100" step="1" value="80">
+          <span id="synthVolumeVal" class="small muted">80</span>
+        </label>
+        <label class="chip"><input type="checkbox" id="trackFollowChk" checked> 跟随琴的演奏通道选轨</label>
+        <label class="chip"><input type="checkbox" id="monitorClockChk"> 显示 MIDI 时钟 F8</label>
+        <button id="monitorClearBtn" class="btn tiny">清空监听</button>
+        <span id="monitorCount" class="small muted">0 条</span>
+      </div>
+      <p class="small muted">界面大小「自动」只在横屏大屏触控设备放大；竖屏默认标准大小。轨道跟随按每个音符的输入通道匹配 App 轨道。PA700 的 MIDI OUT Channels 需要把 Ply Tr 01–16 分配到 Ch1–16；PA700 不发送“轨道选择”消息，因此 App 无法移动琴上的轨选光标。</p>
+      <div id="midiMonitor" class="midi-monitor" aria-live="off"></div>
+      <div class="dialog-actions">
+        <button data-close="settingsDialog" class="btn primary">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Bank/PC -->
+  <div id="customDialog" class="modal" hidden>
+    <div class="dialog">
+      <h2>自定义 Bank/PC</h2>
+      <p class="small muted">Seq 模式请优先用音色表或这里的 Bank/PC。</p>
+      <div class="row3">
+        <label class="field">MSB <input id="customMsb" type="number" min="0" max="127" value="121"></label>
+        <label class="field">LSB <input id="customLsb" type="number" min="0" max="127" value="0"></label>
+        <label class="field">PC <input id="customPc" type="number" min="0" max="127" value="0"></label>
+      </div>
+      <label class="field">名称（可选）
+        <input id="customName">
+      </label>
+      <div class="dialog-actions">
+        <button id="customSendBtn" class="btn primary">发送并试听</button>
+        <button data-close="customDialog" class="btn ghost">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Song QR share / scan -->
+  <div id="qrDialog" class="modal nested-modal" hidden>
+    <div class="dialog qr-dialog">
+      <h2>歌曲二维码分享</h2>
+      <p id="qrShareSubject" class="small muted"></p>
+      <div class="qr-tabs">
+        <button id="qrShowTab" class="btn tiny primary">显示二维码</button>
+        <button id="qrScanTab" class="btn tiny">扫码导入</button>
+      </div>
+      <div id="qrShowPanel">
+        <canvas id="qrCanvas" class="qr-canvas" width="320" height="320"></canvas>
+        <p id="qrFrameLabel" class="small muted">正在生成二维码…</p>
+        <div class="qr-controls">
+          <button id="qrPauseBtn" class="btn tiny">暂停</button>
+          <button id="qrPrevBtn" class="btn tiny">上一帧</button>
+          <button id="qrNextBtn" class="btn tiny">下一帧</button>
+          <button id="qrRestartBtn" class="btn tiny">重新开始</button>
+        </div>
+        <p class="small muted">另一台设备：歌曲 → 二维码分享 → 扫码导入。扫码后直接存进歌曲库，不替换当前工作区。数据多时点暂停，用上一帧/下一帧逐帧扫。</p>
+      </div>
+      <div id="qrScanPanel" hidden>
+        <video id="qrVideo" class="qr-video" playsinline muted></video>
+        <canvas id="qrScanCanvas" hidden></canvas>
+        <p id="qrScanStatus" class="small">对准另一台设备屏幕上的二维码…</p>
+        <p class="small muted">扫描完成会保存到歌曲库，不会替换当前工作区。多首歌曲打包的二维码请用网页版扫码。</p>
+        <button id="qrResetBtn" class="btn tiny">重置扫描</button>
+      </div>
+      <div class="dialog-actions">
+        <button data-close="qrDialog" class="btn ghost">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logic-style live mixer: channel strips for the visible tracks. -->
+  <div id="mixerOverlay" class="mixer-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="mixerTitle">
+    <div class="mixer-head">
+      <div class="mixer-head-text">
+        <span id="mixerTitle" class="mixer-title">混音台</span>
+        <span class="mixer-hint small muted">拖动推子改音量 · 上下拖动旋钮改声像 · M 静音 · S 独奏 · R 录音预备 · 双击推子回 100 / 旋钮回中 · 按 X 开关</span>
+      </div>
+      <div class="mixer-head-actions">
+        <div class="mixer-transport">
+          <button id="mixerPlayBtn" class="btn tiny primary" type="button" title="从停止位置播放；暂停后继续">播放</button>
+          <button id="mixerStopBtn" class="btn tiny" type="button" title="停止并回到开头（取消等待/倒数）">停止</button>
+          <span id="mixerPosition" class="mixer-position">1.1.000</span>
+        </div>
+        <span id="mixerChannelInfo" class="small muted"></span>
+        <button id="mixerCloseBtn" class="btn" type="button">关闭 ✕</button>
+      </div>
+    </div>
+    <div class="mixer-body">
+      <div id="mixerStrips" class="mixer-strips"></div>
+    </div>
+  </div>
+
+  <script src="vendor/jsQR.js"></script>
+  <script type="module" src="license.js?v=3.40.8"></script>
+  <script type="module" src="app.js?v=3.40.8"></script>
+</body>
+</html>

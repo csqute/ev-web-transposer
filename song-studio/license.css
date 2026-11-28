@@ -1,0 +1,203 @@
+/* Blocking activation window for Ev Song Studio. */
+
+.license-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(4, 10, 16, .82);
+  backdrop-filter: blur(3px);
+}
+
+.license-gate[hidden] {
+  display: none !important;
+}
+
+.license-card {
+  width: min(560px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .6);
+}
+
+.license-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.license-lock {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.license-head h2 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.license-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 8px 0 2px;
+}
+
+.license-status {
+  color: var(--accent-alt);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.license-until {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.license-field {
+  display: block;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.license-device-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.license-device {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  word-break: break-all;
+}
+
+.license-input {
+  width: 100%;
+  min-height: 82px;
+  margin-top: 4px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.license-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.license-actions .btn.primary {
+  min-height: 38px;
+  padding: 0 16px;
+}
+
+.license-message {
+  min-height: 20px;
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.license-message.ok { color: var(--success); }
+.license-message.bad { color: var(--danger); }
+
+.license-buy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.license-qr {
+  width: 128px;
+  max-width: 38vw;
+  height: auto;
+  padding: 5px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.license-buy-text {
+  flex: 1 1 190px;
+  min-width: 160px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.license-buy-text p {
+  margin: 0 0 5px;
+}
+
+.license-small {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+html.embed .license-gate {
+  padding: 8px;
+}
+
+html.embed .license-card {
+  padding: 12px;
+  border-radius: 12px;
+}
+
+html.embed .license-head h2 {
+  font-size: 17px;
+}
+
+html.embed .license-input {
+  min-height: 64px;
+  font-size: 13px;
+}
+
+html.embed .license-qr {
+  width: 96px;
+}
+
+@media (max-width: 520px) {
+  .license-card {
+    padding: 14px;
+  }
+
+  .license-head h2 {
+    font-size: 18px;
+  }
+}
